@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Detail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXhW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #0E1923;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .agent-container {
+            background-image: url(../Assets/bg.jpg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100vh;
+            padding: 0 100px;
+        }
+
+        .agent-info {
+            flex: 1;
+        }
+
+        .agent-image {
+            flex: 1;
+            text-align: right;
+        }
+
+        .agent-image img {
+            max-height: 80vh;
+        }
+
+        h1 {
+            font-size: 6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+        }
+
+        .role-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #FF4655;
+            padding: 20px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            max-width: 150px;
+        }
+
+        .role-badge img {
+            width: 50px;
+        }
+        
+        .skills{
+            height: 100vh;
+            padding: 0 100px;
+        }
+
+        /* Special Abilities Section */
+        .abilities-container {
+            padding: 50px 100px;
+            background-color: #0E1923;
+            display: flex;
+            flex-direction: row;
+            justify-content: start;
+            align-items: start;
+        }
+
+        .abilities-title {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+
+        .abilities-icons {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-right: 30px;
+        }
+
+        .abilities-icons img {
+            width: 70px;
+            margin-bottom: 20px;
+            filter: grayscale(100%);
+            /* Initially grayscale */
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .abilities-icons img.active {
+            filter: none;
+            /* Highlight active icon */
+            border: 2px solid white;
+            padding: 10px;
+            border-radius: 50%;
+        }
+
+        .ability-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .ability-description {
+            margin-left: 20px;
+            width: 90%;
+        }
+
+        .ability-description h3 {
+            font-size: 2rem;
+            margin-top: 20px;
+        }
+
+        .ability-description p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Agent Section -->
+    <div class="agent-container">
+        <div class="agent-info">
+            <h1 id="agentName"></h1>
+            <p id="agentDescription"></p>
+            <div class="role-badge">
+                <img id="icon" alt="Icon" src="role-icon.png">
+                <h5 style="font-size: 10pt;">role</h5>
+                <span id="agentRole" style="color: #FF4655;"></span>
+            </div>
+        </div>
+        <div class="agent-image">
+            <img id="agentImage" alt="Agent Image" src="brimstone-portrait.png">
+        </div>
+    </div>
+
+    <!-- Special Abilities Section -->
+    <div class="skills">
+        <h2 class="abilities-title text-center">Special Abilities</h2>
+        <div class="abilities-container">
+            <div class="abilities-icons">
+                <!-- Ability Icons will be dynamically generated here -->
+            </div>
+            <div class="ability-content">
+                <!-- Ability Descriptions will be dynamically generated here -->
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Get the agent ID from the URL query parameter
+        const params = new URLSearchParams(window.location.search);
+        const agentId = params.get("id");
+
+        // Fetch agent details from the API using the agent ID
+        if (agentId) {
+            fetch(`https://valorant-api.com/v1/agents/${agentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const agent = data.data;
+
+                    // Display agent details on the page
+                    document.getElementById("agentName").textContent = agent.displayName;
+                    document.getElementById("agentDescription").textContent = agent.description;
+                    document.getElementById("agentImage").src = agent.fullPortraitV2;
+                    document.getElementById("icon").src = agent.role.displayIcon;
+                    document.getElementById("agentRole").textContent = agent.role.displayName;
+
+                    // Fetch and display abilities
+                    const abilitiesContainer = document.querySelector(".abilities-icons");
+                    const abilityContentContainer = document.querySelector(".ability-content");
+
+                    // Clear any previous content
+                    abilitiesContainer.innerHTML = "";
+                    abilityContentContainer.innerHTML = "";
+
+                    agent.abilities.forEach((ability, index) => {
+                        // Create ability icon
+                        const abilityIcon = document.createElement("img");
+                        abilityIcon.src = ability.displayIcon;
+                        abilityIcon.alt = `Ability ${index + 1} Icon`;
+                        abilityIcon.classList.add("ability-icon");
+
+                        // Add the first icon as active by default
+                        if (index === 0) {
+                            abilityIcon.classList.add("active");
+                        }
+
+                        abilitiesContainer.appendChild(abilityIcon);
+
+                        // Create ability description element (initially hidden)
+                        const abilityDescription = document.createElement("div");
+                        abilityDescription.className = "ability-description";
+                        abilityDescription.style.display = index === 0 ? "block" : "none";  // Show first ability
+
+                        abilityDescription.innerHTML = `
+                            <h3>${ability.displayName}</h3>
+                            <p>${ability.description}</p>
+                        `;
+                        abilityContentContainer.appendChild(abilityDescription);
+
+                        // Add click event listener to show the clicked ability description
+                        abilityIcon.addEventListener("click", () => {
+                            // Remove active class from all icons
+                            const allIcons = document.querySelectorAll(".ability-icon");
+                            allIcons.forEach(icon => icon.classList.remove("active"));
+
+                            // Hide all ability descriptions
+                            const allDescriptions = document.querySelectorAll(".ability-description");
+                            allDescriptions.forEach(desc => desc.style.display = "none");
+
+                            // Add active class to clicked icon and show its description
+                            abilityIcon.classList.add("active");
+                            abilityDescription.style.display = "block";
+                        });
+                    });
+                })
+                .catch(error => console.error('Error fetching agent details:', error));
+        } else {
+            document.getElementById("agentName").textContent = "Agent not found";
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+        integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+        integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
